@@ -2,11 +2,11 @@ import pandas as pd
 
 
 def run_sip_simulation(
-    monthly_sip: float,
-    annual_return: float,
-    years: int,
-    step_up: float,
-    inflation: float
+    monthly_sip,
+    annual_return,
+    years,
+    step_up,
+    inflation
 ):
 
     months = years * 12
@@ -27,10 +27,8 @@ def run_sip_simulation(
 
         total_invested += sip
 
-        # remaining months until end
         remaining_months = months - month
 
-        # inflation-adjusted investment
         real_value = sip / ((1 + monthly_inflation) ** remaining_months)
 
         real_invested += real_value
