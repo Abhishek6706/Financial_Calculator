@@ -1,15 +1,22 @@
 import streamlit as st
 import plotly.graph_objects as go
+from dotenv import load_dotenv
 
 from engine.sip_engine import run_sip_simulation
 from engine.swp_engine import run_swp_simulation
 from utils.formatters import format_inr
 
+from ai.chatbot import financial_chat_stream
+
+
+load_dotenv()
+
 st.set_page_config(layout="wide")
 
 st.title("Investment Planner")
 
-# Synced Slider + Number Input Function
+
+# Synced Slider + Number Input
 
 def synced_slider_input(label, min_val, max_val, default, step=1, key="param"):
 
@@ -66,6 +73,15 @@ with tab1:
 
     with left:
 
+        lumpsum = synced_slider_input(
+            "Initial Lumpsum Investment",
+            0,
+            1000000,
+            0,
+            step=10000,
+            key="lumpsum"
+        )
+
         monthly_sip = synced_slider_input(
             "Monthly Investment",
             10000,
@@ -116,7 +132,8 @@ with tab1:
         expected_return,
         years,
         step_up,
-        inflation
+        inflation,
+        lumpsum
     )
 
     returns = corpus - total_invested
@@ -167,16 +184,16 @@ with tab2:
     withdrawal = synced_slider_input(
         "Monthly Withdrawal",
         50000,
-        100000,
+        1000000,
         70000,
-        step=1000,
+        step=10000,
         key="withdraw"
     )
 
     withdrawal_years = synced_slider_input(
         "Withdrawal Duration (Years)",
         10,
-        20,
+        40000,
         15,
         key="withdraw_years"
     )
@@ -209,3 +226,50 @@ with tab2:
         st.warning("⚠ Corpus exhausted before withdrawal period ends")
     else:
         st.success("✔ Corpus lasts entire withdrawal duration")
+
+
+# AI FINANCIAL ADVISOR
+
+st.divider()
+st.header("AI Financial Advisor")
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+user_question = st.chat_input("Ask anything about your investment plan")
+
+data = {
+    "invested": total_invested,
+    "corpus": corpus,
+    "real_corpus": real_corpus,
+    "withdrawn": total_withdrawn if 'total_withdrawn' in locals() else 0,
+    "remaining": remaining if 'remaining' in locals() else corpus
+}
+
+if user_question:
+
+    st.session_state.chat_history.append(("user", user_question))
+
+    from ai.chatbot import financial_chat_stream
+
+    response_container = st.chat_message("assistant")
+    message_placeholder = response_container.empty()
+
+    full_response = ""
+
+    for chunk in financial_chat_stream(user_question, data):
+        full_response += chunk
+        message_placeholder.markdown(full_response + "▌")
+
+    message_placeholder.markdown(full_response)
+
+    st.session_state.chat_history.append(("assistant", full_response))
+
+
+for role, message in st.session_state.chat_history:
+
+    if role == "user":
+        st.chat_message("user").write(message)
+
+    else:
+        st.chat_message("assistant").write(message)

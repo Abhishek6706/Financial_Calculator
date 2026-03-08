@@ -6,7 +6,8 @@ def run_sip_simulation(
     annual_return,
     years,
     step_up,
-    inflation
+    inflation,
+    lumpsum
 ):
 
     months = years * 12
@@ -14,10 +15,10 @@ def run_sip_simulation(
     monthly_inflation = (1 + inflation) ** (1/12) - 1
 
     sip = monthly_sip
-    corpus = 0
+    corpus = lumpsum
 
-    total_invested = 0
-    real_invested = 0
+    total_invested = lumpsum
+    real_invested = lumpsum / ((1 + ((1 + inflation) ** (1/12) - 1)) ** months)
 
     data = []
 
