@@ -5,9 +5,7 @@ from dotenv import load_dotenv
 from engine.sip_engine import run_sip_simulation
 from engine.swp_engine import run_swp_simulation
 from utils.formatters import format_inr
-
 from ai.chatbot import financial_chat_stream
-
 
 load_dotenv()
 
@@ -49,11 +47,12 @@ def synced_slider_input(label, min_val, max_val, default, step=1, key="param"):
 
     with col2:
         st.number_input(
-            "",
+            "value",
             min_value=min_val,
             max_value=max_val,
             key=input_key,
             step=step,
+            label_visibility="collapsed",
             on_change=update_from_input
         )
 
@@ -151,7 +150,7 @@ with tab1:
 
         fig.update_layout(height=400)
 
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
     st.divider()
 
@@ -184,16 +183,16 @@ with tab2:
     withdrawal = synced_slider_input(
         "Monthly Withdrawal",
         50000,
-        1000000,
+        500000,
         70000,
-        step=10000,
+        step=5000,
         key="withdraw"
     )
 
     withdrawal_years = synced_slider_input(
         "Withdrawal Duration (Years)",
         10,
-        40000,
+        2000,
         15,
         key="withdraw_years"
     )
@@ -206,7 +205,16 @@ with tab2:
         key="withdraw_return"
     )
 
+    withdraw_inflation = synced_slider_input(
+        "Inflation Rate (%)",
+        4,
+        8,
+        6,
+        key="withdraw_inflation"
+    )
+
     withdrawal_return = withdrawal_return / 100
+    withdraw_inflation = withdraw_inflation / 100
 
     swp_df, total_withdrawn, remaining = run_swp_simulation(
         corpus,
@@ -215,12 +223,20 @@ with tab2:
         withdrawal_years
     )
 
+    # REAL VALUES (TODAY MONEY)
+
+    real_withdrawal = withdrawal / ((1 + withdraw_inflation) ** years)
+
+    real_remaining = remaining / ((1 + withdraw_inflation) ** (years + withdrawal_years))
+
     st.divider()
 
-    col1,col2 = st.columns(2)
+    col1,col2,col3,col4 = st.columns(4)
 
     col1.metric("Total Withdrawn",format_inr(total_withdrawn))
     col2.metric("Remaining Corpus",format_inr(remaining))
+    col3.metric("Real Withdrawal Value",format_inr(real_withdrawal))
+    col4.metric("Real Remaining Corpus",format_inr(real_remaining))
 
     if remaining <= 0:
         st.warning("⚠ Corpus exhausted before withdrawal period ends")
@@ -249,8 +265,6 @@ data = {
 if user_question:
 
     st.session_state.chat_history.append(("user", user_question))
-
-    from ai.chatbot import financial_chat_stream
 
     response_container = st.chat_message("assistant")
     message_placeholder = response_container.empty()
