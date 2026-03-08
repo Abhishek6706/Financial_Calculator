@@ -252,6 +252,15 @@ st.header("AI Financial Advisor")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+
+# Show previous chat
+
+for role, message in st.session_state.chat_history:
+    st.chat_message(role).write(message)
+
+
+# New user input
+
 user_question = st.chat_input("Ask anything about your investment plan")
 
 data = {
@@ -264,26 +273,23 @@ data = {
 
 if user_question:
 
+    st.chat_message("user").write(user_question)
     st.session_state.chat_history.append(("user", user_question))
 
-    response_container = st.chat_message("assistant")
-    message_placeholder = response_container.empty()
+    assistant_container = st.chat_message("assistant")
+    message_placeholder = assistant_container.empty()
 
     full_response = ""
 
     for chunk in financial_chat_stream(user_question, data):
-        full_response += chunk
+
+        if isinstance(chunk, str):
+            full_response += chunk
+        else:
+            full_response += chunk.content
+
         message_placeholder.markdown(full_response + "▌")
 
     message_placeholder.markdown(full_response)
 
     st.session_state.chat_history.append(("assistant", full_response))
-
-
-for role, message in st.session_state.chat_history:
-
-    if role == "user":
-        st.chat_message("user").write(message)
-
-    else:
-        st.chat_message("assistant").write(message)

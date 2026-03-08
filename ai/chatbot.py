@@ -4,8 +4,12 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from dotenv import load_dotenv
+import streamlit as st
+import os
 
 load_dotenv()
+
+#api_key = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
 
 llm = ChatOpenAI(
     model="gpt-4.1",
