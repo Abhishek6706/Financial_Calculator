@@ -9,7 +9,6 @@ import os
 
 load_dotenv()
 
-#api_key = st.secrets.get("OPENAI_API_KEY", os.getenv("OPENAI_API_KEY"))
 
 llm = ChatOpenAI(
     model="gpt-4.1",
@@ -35,7 +34,9 @@ Remaining Corpus: {remaining}
 Explain clearly like a professional financial planner.
 
 User Question:
-{question}
+{question},
+
+If the question is not related to finance, simply reply with 'Ask finance related question, Please!', this will settle the hasulation.
 """,
     input_variables=[
         "invested",
