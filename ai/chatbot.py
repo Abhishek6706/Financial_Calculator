@@ -36,7 +36,7 @@ Explain clearly like a professional financial planner.
 User Question:
 {question},
 
-If the question is not related to finance, simply reply with 'Ask finance related question, Please!', this will settle the hasulation.
+If the question is not related to finance, simply reply with 'Ask finance related question, Please!', this will settle the hallucination.
 """,
     input_variables=[
         "invested",
